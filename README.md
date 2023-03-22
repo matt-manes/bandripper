@@ -19,16 +19,17 @@ pip install bandripper
 ##### Options
 <pre>
 >bandripper -h
-usage: bandripper [-h] [-n] [urls ...]
+usage: bandripper [-h] [-n] [-o] [urls ...]
 
 positional arguments:
-  urls                  The bandcamp url(s) for the album or artist. If the url is to an artists main page, all albums will be downloaded. The tracks will be saved to a subdirectory of
-                        your current directory. If a track can't be streamed (i.e. private) it won't be downloaded. Multiple urls can be passed.
+  urls                  The bandcamp url(s) for the album or artist. If the url is to an artists main page, all albums will be downloaded. The tracks will be saved to a subdirectory of your current directory. If a track can't be streamed (i.e. private) it won't be downloaded.
+                        Multiple urls can be passed.
 
 options:
   -h, --help            show this help message and exit
   -n, --no_track_number
                         By default the track number will be added to the front of the track title. Pass this switch to disable the behavior.
+  -o, --overwrite       Pass this flag to overwrite existing files. Otherwise don't download tracks that already exist locally.
 </pre>
 e.g.
 <pre>
