@@ -45,3 +45,13 @@ def test_clean_string():
 def test_page_is_discography():
     assert not bandripper.page_is_discography(url)
     assert bandripper.page_is_discography(url2)
+
+
+def test_track_exists():
+    os.chdir(root)
+    ripper = bandripper.AlbumRipper(url)
+    assert_album(ripper.album)
+    ripper.rip()
+    for track in ripper.album.tracks:
+        assert ripper.track_exists(track)
+    shutil.rmtree((root / "Cusp"))

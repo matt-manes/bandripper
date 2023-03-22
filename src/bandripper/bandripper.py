@@ -71,12 +71,15 @@ class Album:
 
 
 class AlbumRipper:
-    def __init__(self, album_url: str, no_track_number: bool):
+    def __init__(
+        self, album_url: str, no_track_number: bool = False, overwrite: bool = False
+    ):
         """
         :param no_track_number: If True, don't add the track
         number to the front of the track title."""
         self.album = Album(album_url)
         self.no_track_number = no_track_number
+        self.overwrite = overwrite
 
     def make_save_path(self):
         self.save_path = Path.cwd() / self.album.artist / self.album.title
@@ -116,6 +119,13 @@ class AlbumRipper:
             print(f"Failed to download art for {self.album}.")
             print(e)
 
+    def track_exists(self, track: Track) -> bool:
+        """Return if a track already exists in self.save_path."""
+        path = self.save_path / (
+            track.title if self.no_track_number else track.numbered_title
+        )
+        return path.with_suffix(".mp3").exists()
+
     def rip(self):
         """Download and save the album tracks and album art."""
         if len(self.album.tracks) == 0:
@@ -125,6 +135,10 @@ class AlbumRipper:
         self.download_album_art()
         bar = ProgBar(len(self.album.tracks) - 1, width_ratio=0.5)
         fails = []
+        if not self.overwrite:
+            self.album.tracks = [
+                track for track in self.album.tracks if not self.track_exists(track)
+            ]
         for track in self.album.tracks:
             bar.display(
                 suffix=f"Downloading {track.title}",
@@ -147,12 +161,14 @@ class AlbumRipper:
 
 
 class BandRipper:
-    def __init__(self, band_url: str, no_track_number: bool):
+    def __init__(
+        self, band_url: str, no_track_number: bool = False, overwrite: bool = False
+    ):
         self.band_url = band_url
         self.albums = []
         for url in self.get_album_urls(band_url):
             try:
-                self.albums.append(AlbumRipper(url, no_track_number))
+                self.albums.append(AlbumRipper(url, no_track_number, overwrite))
             except Exception as e:
                 print(e)
 
@@ -194,6 +210,21 @@ class BandRipper:
                 print(f"{fail[0]}: {fail[1]}")
 
 
+def page_is_discography(url: str) -> bool:
+    """Returns whether the url is to a discography page or not."""
+    response = requests.get(url, headers=whosyouragent.get_agent(as_dict=True))
+    if response.status_code != 200:
+        raise RuntimeError(
+            f"Getting {url} failed with status code {response.status_code}."
+        )
+    soup = BeautifulSoup(response.text, "html.parser")
+    # Returns None if it doesn't exist.
+    grid = soup.find("ol", attrs={"id": "music-grid"})
+    if grid:
+        return True
+    return False
+
+
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
 
@@ -219,25 +250,18 @@ def get_args() -> argparse.Namespace:
         to disable the behavior.""",
     )
 
+    parser.add_argument(
+        "-o",
+        "--overwrite",
+        action="store_true",
+        help=""" Pass this flag to overwrite existing files.
+        Otherwise don't download tracks that already exist locally.""",
+    )
+
     args = parser.parse_args()
     args.urls = [url.strip("/") for url in args.urls]
 
     return args
-
-
-def page_is_discography(url: str) -> bool:
-    """Returns whether the url is to a discography page or not."""
-    response = requests.get(url, headers=whosyouragent.get_agent(as_dict=True))
-    if response.status_code != 200:
-        raise RuntimeError(
-            f"Getting {url} failed with status code {response.status_code}."
-        )
-    soup = BeautifulSoup(response.text, "html.parser")
-    # Returns None if it doesn't exist.
-    grid = soup.find("ol", attrs={"id": "music-grid"})
-    if grid:
-        return True
-    return False
 
 
 def main(args: argparse.Namespace = None):
