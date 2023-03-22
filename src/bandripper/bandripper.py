@@ -7,8 +7,9 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import requests
-import whosyouragent
 from bs4 import BeautifulSoup
+
+import whosyouragent
 from noiftimer import Timer
 from printbuddies import ProgBar
 
