@@ -39,7 +39,7 @@ def test__albumripper__rip():
 
 def test_clean_string():
     text = "\s.ome / title \\."
-    assert bandripper.clean_string(text) == "some  title "
+    assert bandripper.clean_string(text) == "some  title"
 
 
 def test_page_is_discography():

@@ -270,9 +270,9 @@ def main(args: argparse.Namespace = None):
         args = get_args()
     for url in args.urls:
         if page_is_discography(url):
-            ripper = BandRipper(url, args.no_track_number)
+            ripper = BandRipper(url, args.no_track_number, args.overwrite)
         else:
-            ripper = AlbumRipper(url, args.no_track_number)
+            ripper = AlbumRipper(url, args.no_track_number, args.overwrite)
         ripper.rip()
 
 
