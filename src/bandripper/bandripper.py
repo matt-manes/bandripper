@@ -16,8 +16,8 @@ root = Path(__file__).parent
 
 
 def clean_string(text: str) -> str:
-    """Remove punctuation from text."""
-    return re.sub(f"[{re.escape(string.punctuation)}]", "", text)
+    """Remove punctuation and trailing spaces from text."""
+    return re.sub(f"[{re.escape(string.punctuation)}]", "", text).strip()
 
 
 @dataclass
