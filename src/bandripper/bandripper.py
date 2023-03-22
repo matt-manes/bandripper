@@ -1,16 +1,16 @@
 import argparse
 import json
+import re
+import string
 from dataclasses import dataclass
 from pathlib import Path
-import re
 from urllib.parse import urlparse
-import string
 
 import requests
 import whosyouragent
 from bs4 import BeautifulSoup
-from printbuddies import ProgBar
 from noiftimer import Timer
+from printbuddies import ProgBar
 
 root = Path(__file__).parent
 
