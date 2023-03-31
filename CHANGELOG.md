@@ -1,10 +1,21 @@
 # Changelog
 
-## 0.1.3 (2023-03-22)
+## 0.1.4 (2023-03-31)
+
+#### Refactorings
+
+* change timer.current_elapsed_time() calls to timer.elapsed_str
+
+
+## v0.1.3 (2023-03-22)
 
 #### Fixes
 
 * fix not passing cli switch to constructors
+#### Others
+
+* build v0.1.3
+* update changelog
 
 
 ## v0.1.2 (2023-03-22)
