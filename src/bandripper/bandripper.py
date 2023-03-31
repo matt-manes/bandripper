@@ -134,6 +134,7 @@ class AlbumRipper:
         self.make_save_path()
         self.download_album_art()
         bar = ProgBar(len(self.album.tracks) - 1, width_ratio=0.5)
+        bar.timer.subsecond_resolution = True
         fails = []
         if not self.overwrite:
             self.album.tracks = [
@@ -152,8 +153,7 @@ class AlbumRipper:
                 )
             except Exception as e:
                 fails.append((track, str(e)))
-        elapsed_time = bar.timer.current_elapsed_time(subsecond_resolution=True)
-        print(f"Finished downloading {self.album} in {elapsed_time}.")
+        print(f"Finished downloading {self.album} in {bar.timer.elapsed_str}.")
         if fails:
             print("The following tracks failed to download:")
             for fail in fails:
@@ -190,7 +190,7 @@ class BandRipper:
         print(
             f"Downloading {len(self.albums)} albums by {self.albums[0].album.artist}."
         )
-        timer = Timer()
+        timer = Timer(subsecond_resolution=True)
         timer.start()
         fails = []
         for album in self.albums:
@@ -200,9 +200,8 @@ class BandRipper:
                 fails.append((album, e))
         timer.stop()
         artist = self.albums[0].album.artist
-        elapsed_time = timer.current_elapsed_time()
         print(
-            f"Finished downloading {len(self.albums)} albums by {artist} in {elapsed_time}."
+            f"Finished downloading {len(self.albums)} albums by {artist} in {timer.elapsed_str}."
         )
         if fails:
             print(f"The following downloads failed:")
