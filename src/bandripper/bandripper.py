@@ -135,7 +135,6 @@ class AlbumRipper:
         self.make_save_path()
         self.download_album_art()
         bar = ProgBar(len(self.album.tracks) - 1, width_ratio=0.5)
-        bar.timer.subsecond_resolution = True
         fails = []
         if not self.overwrite:
             self.album.tracks = [
