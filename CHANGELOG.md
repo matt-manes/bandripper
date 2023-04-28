@@ -1,10 +1,21 @@
 # Changelog
 
-## 0.1.5 (2023-04-16)
+## 0.1.6 (2023-04-28)
+
+#### Fixes
+
+* update printbuddies.ProgBar usage to new version
+
+
+## v0.1.5 (2023-04-16)
 
 #### Fixes
 
 * update noiftimer usage
+#### Others
+
+* build v0.1.5
+* update changelog
 
 
 ## v0.1.4 (2023-03-31)
