@@ -133,15 +133,16 @@ class AlbumRipper:
             return None
         self.make_save_path()
         self.download_album_art()
-        bar = ProgBar(len(self.album.tracks) - 1, width_ratio=0.5)
+        num_tracks = len(self.album.tracks)
+        bar = ProgBar(num_tracks, width_ratio=0.5)
         fails = []
         if not self.overwrite:
             self.album.tracks = [
                 track for track in self.album.tracks if not self.track_exists(track)
             ]
-        for track in self.album.tracks:
+        for i, track in enumerate(self.album.tracks, 1):
             bar.display(
-                suffix=f"Downloading {track.title}",
+                suffix=f"Downloading track {i}/{num_tracks}: {track.title}",
                 counter_override=1 if len(self.album.tracks) == 1 else None,
             )
             try:
@@ -152,7 +153,9 @@ class AlbumRipper:
                 )
             except Exception as e:
                 fails.append((track, str(e)))
-        print(f"Finished downloading {self.album} in {bar.timer.elapsed_str}.")
+        print(
+            f"Finished downloading {num_tracks - len(fails)} tracks from {self.album} in {bar.timer.elapsed_str}."
+        )
         if fails:
             print("The following tracks failed to download:")
             for fail in fails:
