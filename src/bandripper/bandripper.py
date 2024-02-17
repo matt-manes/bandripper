@@ -49,7 +49,7 @@ class Album:
         return f"{self.title} by {self.artist}"
 
     def __post_init__(self):
-        response = requests.get(self.url, headers=whosyouragent.get_agent(as_dict=True))
+        response = requests.get(self.url, headers=whosyouragent.get_header())
         if response.status_code != 200:
             raise RuntimeError(
                 f"Getting album info failed with code {response.status_code}"
@@ -88,7 +88,7 @@ class AlbumRipper:
     @property
     def headers(self) -> dict:
         """Get a headers dict with a random useragent."""
-        return whosyouragent.get_agent(as_dict=True)
+        return whosyouragent.get_header()
 
     def save_track(self, track_title: str, content: bytes) -> Path:
         """Save track to self.save_path/{track_title}.mp3.
@@ -177,7 +177,7 @@ class BandRipper:
     def get_album_urls(self, band_url: str) -> list[str]:
         """Get album urls from the main bandcamp url."""
         print(f"Fetching discography from {band_url}...")
-        response = requests.get(band_url, headers=whosyouragent.get_agent(as_dict=True))
+        response = requests.get(band_url, headers=whosyouragent.get_header())
         if response.status_code != 200:
             raise RuntimeError(
                 f"Getting {band_url} failed with status code {response.status_code}."
@@ -213,7 +213,7 @@ class BandRipper:
 
 def page_is_discography(url: str) -> bool:
     """Returns whether the url is to a discography page or not."""
-    response = requests.get(url, headers=whosyouragent.get_agent(as_dict=True))
+    response = requests.get(url, headers=whosyouragent.get_header())
     if response.status_code != 200:
         raise RuntimeError(
             f"Getting {url} failed with status code {response.status_code}."
