@@ -34,8 +34,7 @@ options:
 e.g.
 <pre>
 >bandripper https://blacklungwinter.bandcamp.com/releases
- [______________________________________________________________________________________________________________]-100.00% Downloading Uproot
-Finished downloading Bodies of EarthHearts of Space by Blacklung Winter in 3s 107ms 7us.
+Downloading 5 tracks from Bodies of EarthHearts of Space by Blacklung Winter... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.00% 0s
 >dir "./Blacklung Winter/Bodies of EarthHearts of Space"
 03/22/2023  01:46 PM           228,335 Bodies of EarthHearts of Space.jpg
 03/22/2023  01:46 PM         3,008,887 01 - Bodies of EarthHearts of Space.mp3
