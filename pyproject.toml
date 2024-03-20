@@ -6,8 +6,8 @@ build-backend = "hatchling.build"
 name = "bandripper"
 description = "Rip mp3s from bandcamp."
 version = "0.1.6"
-requires-python = ">=3.9"
-dependencies = ["requests", "bs4", "whosyouragent", "noiftimer", "printbuddies", "pytest"]
+requires-python = ">=3.10, <3.12"
+dependencies = ["noiftimer", "printbuddies"]
 readme = "README.md"
 keywords = ["bandcamp", "download", "downloader", "music", "audio"]
 classifiers = [
@@ -37,7 +37,10 @@ exclude = [
     ".pytest_cache",
     ".vscode",
     "tests",
-    ".gitignore"
+    ".gitignore",
+    "docs",
+    "htmlcov",
+    "*.md"
     ]
 [project.scripts]
 bandripper = "bandripper.bandripper:main"
