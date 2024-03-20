@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.2.0 (2024-03-20)
+
+#### Refactorings
+
+* implement better separation of responsibilities and type checker compliance
+#### Docs
+
+* update cli example
+#### Others
+
+* update dependencies, py version, and sdist exlude list
+
+
 ## v0.1.6 (2023-04-28)
 
 #### Fixes
