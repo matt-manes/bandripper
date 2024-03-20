@@ -1,13 +1,13 @@
 from .bandripper import (
-    BandRipper,
-    AlbumRipper,
-    Track,
     Album,
     AlbumParser,
+    AlbumRipper,
+    BandRipper,
+    Track,
     page_is_discography,
 )
 
-__version__ = "0.1.6"
+__version__ = "0.2.0"
 __all__ = [
     "BandRipper",
     "AlbumRipper",
