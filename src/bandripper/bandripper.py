@@ -203,6 +203,46 @@ class AlbumRipper:
         self._save_path = Pathier.cwd() / album.artist / album.title
         self._save_path.mkdir(parents=True, exist_ok=True)
 
+    def filter_existing_tracks(
+        self, tracks: list[Track]
+    ) -> tuple[list[Track], list[Track]]:
+        """Splits `tracks` into a list of tracks that don't exist at the save location and a list of tracks that do.
+
+        Return order is `(non_existing_tracks, existing_tracks)`."""
+        non_existing_tracks: list[Track] = []
+        existing_tracks: list[Track] = []
+        for track in tracks:
+            if self.track_exists(track):
+                existing_tracks.append(track)
+            else:
+                non_existing_tracks.append(track)
+        return non_existing_tracks, existing_tracks
+
+    def get_track_download_list(self, album: Album) -> list[Track]:
+        """Returns a list of tracks to download from an `Album` instance."""
+        tracks_to_download: list[Track] = []
+        existing_tracks: list[Track] = []
+        if self.overwrite:
+            tracks_to_download = album.tracks
+        else:
+            tracks_to_download, existing_tracks = self.filter_existing_tracks(
+                album.tracks
+            )
+        if existing_tracks:
+            if len(existing_tracks) == len(album.tracks):
+                console.print(
+                    f"Album {album.rich_str} already exists, skipping download."
+                )
+            else:
+                for track in existing_tracks:
+                    console.print(
+                        f"Track {color.a1}{track.title}[/] already exists, skipping download."
+                    )
+            console.print(
+                f"Rerun {color.dp1}bandripper[/] command with the `{color.go1}-o[/]` flag to overwrite existing tracks."
+            )
+        return tracks_to_download
+
     def rip(self) -> Album:
         """Download and save the album tracks and album art."""
         album = AlbumParser(self.get_album_page()).parse()
@@ -215,18 +255,17 @@ class AlbumRipper:
         self.make_save_path(album)
         assert self.save_path
         self.save_album_art(album)
-        tracks_to_download = (
-            album.tracks
-            if self.overwrite
-            else [track for track in album.tracks if not self.track_exists(track)]
-        )
+
+        tracks_to_download = self.get_track_download_list(album)
+        if not tracks_to_download:
+            return album
+
         num_tracks_to_download = len(tracks_to_download)
-        pool = quickpool.ThreadPool(
+        quickpool.ThreadPool(
             [self.save_track] * num_tracks_to_download,
             [(track,) for track in tracks_to_download],
             max_workers=5,
-        )
-        results = pool.execute(
+        ).execute(
             description=f"Downloading {color.bg}{num_tracks_to_download}[/] tracks from {album.rich_str}..."
         )
         console.print("Download complete.")
