@@ -21,6 +21,18 @@ discog_urls = Pathier("discography_urls.txt")
 
 
 @dataclass
+class Colors:
+    title = color.a1
+    status = color.br
+    highlight = color.dp1
+    number = color.bg
+    url = color.t2
+
+
+colors = Colors()
+
+
+@dataclass
 class Track:
     title: str
     number: int
@@ -51,10 +63,10 @@ class Track:
             response.raise_for_status()
             return response.content
         except Exception as e:
-            fail_message = f"Download for {color.a1}{self.title}[/] failed"
+            fail_message = f"Download for {colors.url}{self.title}[/] failed"
             if response:
                 console.print(
-                    f"{fail_message} with status code {color.br}{response.status_code}."
+                    f"{fail_message} with status code {colors.status}{response.status_code}."
                 )
             else:
                 console.print(f"{fail_message}:")
@@ -79,7 +91,7 @@ class Album:
     @property
     def rich_str(self) -> str:
         """A rich tagged string for `"{self.title} by {self.artist}"`."""
-        return f"{color.a1}{self.title}[/] by {color.dp1}{self.artist}[/]"
+        return f"{colors.title}{self.title}[/] by {colors.highlight}{self.artist}[/]"
 
     def download_art(self) -> bytes | None:
         """Download and return album art if this instance has an `art_url`."""
@@ -95,7 +107,7 @@ class Album:
             fail_message = f"Downloading album art for {self.rich_str} failed"
             if response:
                 console.print(
-                    f"{fail_message} with status code {color.br}{response.status_code}."
+                    f"{fail_message} with status code {colors.status}{response.status_code}."
                 )
             else:
                 console.print(f"{fail_message}:")
@@ -191,10 +203,10 @@ class AlbumRipper:
             response = request(self.album_url)
             response.raise_for_status()
         except Exception as e:
-            console.print(f"Failed to retrieve page at {color.t2}{self.album_url}.")
+            console.print(f"Failed to retrieve page at {colors.url}{self.album_url}.")
             if response:
                 console.print(
-                    f"Failed with status code {color.br}{response.status_code}."
+                    f"Failed with status code {colors.status}{response.status_code}."
                 )
             raise e
         return response.text
@@ -237,10 +249,10 @@ class AlbumRipper:
             else:
                 for track in existing_tracks:
                     console.print(
-                        f"Track {color.a1}{track.title}[/] already exists, skipping download."
+                        f"Track {colors.title}{track.title}[/] already exists, skipping download."
                     )
             console.print(
-                f"Rerun {color.dp1}bandripper[/] command with the `{color.go1}-o[/]` flag to overwrite existing tracks."
+                f"Rerun {colors.highlight}bandripper[/] command with the `{color.go1}-o[/]` flag to overwrite existing tracks."
             )
         return tracks_to_download
 
@@ -267,13 +279,13 @@ class AlbumRipper:
             [(track,) for track in tracks_to_download],
             max_workers=5,
         ).execute(
-            description=f"Downloading {color.bg}{num_tracks_to_download}[/] tracks from {album.rich_str}..."
+            description=f"Downloading {colors.number}{num_tracks_to_download}[/] tracks from {album.rich_str}..."
         )
         console.print("Download complete.")
         if self.failed_rips:
             console.print("The following tracks failed to download:")
             for track in self.failed_rips:
-                console.print(f"  {color.t2}{track.title}")
+                console.print(f"  {colors.title}{track.title}")
         return album
 
     def save_album_art(self, album: Album):
@@ -346,7 +358,7 @@ class BandRipper:
         ]
 
     def get_discography_page(self) -> str:
-        url = f"{color.bb}{self.band_url}[/]"
+        url = f"{colors.url}{self.band_url}[/]"
         console.print(f"Fetching discography from {url}...")
         response = None
         try:
@@ -355,7 +367,7 @@ class BandRipper:
         except Exception as e:
             console.print(f"Failed to access {url}.")
             if response:
-                console.print(f"Status code: {color.br}{response.status_code}")
+                console.print(f"Status code: {colors.status}{response.status_code}")
             raise e
         return response.text
 
@@ -370,7 +382,7 @@ class BandRipper:
     def rip(self) -> list[Album]:
         """Rip all publicly available albums from the discography page.
         Returns a list of `Album` objects that were ripped."""
-        console.print(f"Searching {color.bb}{self.band_url}[/] for albums...")
+        console.print(f"Searching {colors.url}{self.band_url}[/] for albums...")
         for url in self.get_album_urls():
             self.album_rippers.append(
                 AlbumRipper(url, self.no_track_number, self.overwrite)
@@ -378,7 +390,7 @@ class BandRipper:
         # Save discography url to list after successfully getting albums from it
         self.save_discog_url()
 
-        console.print(f"Found {color.bg}{len(self.album_rippers)}[/] albums.")
+        console.print(f"Found {colors.number}{len(self.album_rippers)}[/] albums.")
         console.print(f"Beginning rip...")
         timer = Timer(subsecond_resolution=True)
         timer.start()
@@ -392,12 +404,14 @@ class BandRipper:
                 fails.append((ripper, e))
         timer.stop()
         console.print(
-            f"Finished downloading {color.bg}{len(self.album_rippers)}[/] albums in {color.dp1}{timer.elapsed_str}."
+            f"Finished downloading {colors.number}{len(self.album_rippers)}[/] albums in {colors.highlight}{timer.elapsed_str}."
         )
         if fails:
             console.print(f"The following downloads failed:")
             for fail in fails:
-                console.print(f"{fail[0].album_url}: {fail[1]}")
+                console.print(
+                    f"{colors.url}{fail[0].album_url}[/]: {colors.status}{fail[1]}"
+                )
         return albums
 
 
@@ -451,7 +465,9 @@ def get_args() -> argshell.Namespace:
 
 def load_discog_urls() -> list[str]:
     if not discog_urls.exists():
-        console.print("No `discography_urls.txt` exists at this location.")
+        console.print(
+            f"No `{colors.title}discography_urls.txt[/]` exists at this location."
+        )
         return []
     return discog_urls.split("utf-8")
 
@@ -459,13 +475,15 @@ def load_discog_urls() -> list[str]:
 def main(args: argshell.Namespace | None = None):
     if not args:
         args = get_args()
+
     if args.new_releases:
         console.print("Loading previously accessed discography urls...")
         urls = load_discog_urls()
         if urls:
             console.print("Checking the following urls for new releases:")
-            console.print(*urls, sep="\n")
+            console.print(*[f"{colors.url}{url}" for url in urls], sep="\n")
             args.urls.extend(urls)
+
     for url in args.urls:
         if discography_page := page_is_discography(url):
             ripper = BandRipper(
