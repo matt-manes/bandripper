@@ -17,18 +17,25 @@ pip install bandripper
 ##### Options
 
 ```console
->bandripper -h
-usage: bandripper [-h] [-n] [-o] [urls ...]
+> bandripper -h
+Usage: bandripper [-h] [-n] [-o] [-nr] [str ...]
 
-positional arguments:
-  urls                  The bandcamp url(s) for the album or artist. If the url is to an artists main page, all albums will be downloaded. The tracks will be saved to a subdirectory of your current directory. If a track can't be streamed (i.e. private) it won't be downloaded.
-                        Multiple urls can be passed.
+Positional Arguments:
+  str                   The bandcamp url(s) for the album or artist. If the url is to an artists
+                        main page, all albums will be downloaded. The tracks will be saved to a
+                        subdirectory of your current directory. If a track can't be streamed (i.e.
+                        private) it won't be downloaded. Multiple urls can be passed. (default: None)
 
-options:
+Options:
   -h, --help            show this help message and exit
   -n, --no_track_number
-                        By default the track number will be added to the front of the track title. Pass this switch to disable the behavior.
-  -o, --overwrite       Pass this flag to overwrite existing files. Otherwise don't download tracks that already exist locally.
+                        By default the track number will be added to the front of the track title.
+                        Pass this switch to disable the behavior. (default: False)
+  -o, --overwrite       Pass this flag to overwrite existing files. Otherwise tracks that already
+                        exist locally will not be downloaded. (default: False)
+  -nr, --new_releases   Check urls in `discography_urls.txt` for new releases and download them. A
+                        discography url is automatically added to the file when bandripper is used
+                        on it. (default: False)
 ```
 
 e.g.

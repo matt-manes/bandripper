@@ -17,6 +17,7 @@ from typing_extensions import Any, Optional
 console = Console(style="pink1")
 color = ColorMap()
 root = Pathier(__file__).parent
+discog_urls = Pathier("discography_urls.txt")
 
 
 @dataclass
@@ -358,6 +359,14 @@ class BandRipper:
             raise e
         return response.text
 
+    def save_discog_url(self) -> None:
+        """Add discog url to txt file if it isn't in there."""
+        discog_urls.touch()
+        urls = discog_urls.split("utf-8")
+        if self.band_url not in urls:
+            urls.append(self.band_url)
+        discog_urls.join(sorted(urls))
+
     def rip(self) -> list[Album]:
         """Rip all publicly available albums from the discography page.
         Returns a list of `Album` objects that were ripped."""
@@ -366,6 +375,9 @@ class BandRipper:
             self.album_rippers.append(
                 AlbumRipper(url, self.no_track_number, self.overwrite)
             )
+        # Save discography url to list after successfully getting albums from it
+        self.save_discog_url()
+
         console.print(f"Found {color.bg}{len(self.album_rippers)}[/] albums.")
         console.print(f"Beginning rip...")
         timer = Timer(subsecond_resolution=True)
@@ -383,9 +395,9 @@ class BandRipper:
             f"Finished downloading {color.bg}{len(self.album_rippers)}[/] albums in {color.dp1}{timer.elapsed_str}."
         )
         if fails:
-            print(f"The following downloads failed:")
+            console.print(f"The following downloads failed:")
             for fail in fails:
-                print(f"{fail[0].album_url}: {fail[1]}")
+                console.print(f"{fail[0].album_url}: {fail[1]}")
         return albums
 
 
@@ -404,28 +416,56 @@ def get_args() -> argshell.Namespace:
         "urls",
         type=str,
         nargs="*",
-        help=" The bandcamp url(s) for the album or artist.\n            If the url is to an artists main page, all albums will be downloaded.\n            The tracks will be saved to a subdirectory of your current directory.\n            If a track can't be streamed (i.e. private) it won't be downloaded. \n            Multiple urls can be passed.",
+        help=""" The bandcamp url(s) for the album or artist. 
+        If the url is to an artists main page, all albums will be downloaded. 
+        The tracks will be saved to a subdirectory of your current directory. 
+        If a track can't be streamed (i.e. private) it won't be downloaded.
+        Multiple urls can be passed.""",
     )
     parser.add_argument(
         "-n",
         "--no_track_number",
         action="store_true",
-        help=" By default the track number will be added to the front of the track title.\n        Pass this switch to disable the behavior.",
+        help=""" By default the track number will be added to the front of the track title. 
+        Pass this switch to disable the behavior.""",
     )
     parser.add_argument(
         "-o",
         "--overwrite",
         action="store_true",
-        help=" Pass this flag to overwrite existing files.\n        Otherwise tracks that already exist locally will not be downloaded.",
+        help=""" Pass this flag to overwrite existing files. 
+        Otherwise tracks that already exist locally will not be downloaded.""",
+    )
+    parser.add_argument(
+        "-nr",
+        "--new_releases",
+        action="store_true",
+        help=""" Check urls in `discography_urls.txt` for new releases and download them.
+        A discography url is automatically added to the file when bandripper is used on it.""",
     )
     args = parser.parse_args()
     args.urls = [url.strip("/") for url in args.urls]
+
     return args
+
+
+def load_discog_urls() -> list[str]:
+    if not discog_urls.exists():
+        console.print("No `discography_urls.txt` exists at this location.")
+        return []
+    return discog_urls.split("utf-8")
 
 
 def main(args: argshell.Namespace | None = None):
     if not args:
         args = get_args()
+    if args.new_releases:
+        console.print("Loading previously accessed discography urls...")
+        urls = load_discog_urls()
+        if urls:
+            console.print("Checking the following urls for new releases:")
+            console.print(*urls, sep="\n")
+            args.urls.extend(urls)
     for url in args.urls:
         if discography_page := page_is_discography(url):
             ripper = BandRipper(
