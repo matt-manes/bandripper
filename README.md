@@ -1,23 +1,22 @@
 # bandripper
 
-Rip albums from bandcamp using the command line.<br>
-Only works for public tracks.<br>
+Download albums from bandcamp using the command line.  
+Only works for public tracks.  
 Quality is limited to mp3 at 128 kbps.
 
 ## Installation
 
 Install with:
 
-<pre>
+```console
 pip install bandripper
-</pre>
-
-
+```
 
 ## Usage
 
 ##### Options
-<pre>
+
+```console
 >bandripper -h
 usage: bandripper [-h] [-n] [-o] [urls ...]
 
@@ -30,9 +29,11 @@ options:
   -n, --no_track_number
                         By default the track number will be added to the front of the track title. Pass this switch to disable the behavior.
   -o, --overwrite       Pass this flag to overwrite existing files. Otherwise don't download tracks that already exist locally.
-</pre>
+```
+
 e.g.
-<pre>
+
+```console
 >bandripper https://blacklungwinter.bandcamp.com/releases
 Downloading 5 tracks from Bodies of EarthHearts of Space by Blacklung Winter... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100.00% 0s
 >dir "./Blacklung Winter/Bodies of EarthHearts of Space"
@@ -42,4 +43,4 @@ Downloading 5 tracks from Bodies of EarthHearts of Space by Blacklung Winter... 
 03/22/2023  01:46 PM         2,792,802 03 - Yin and Yang.mp3
 03/22/2023  01:46 PM         3,326,954 04 - Neurotoxin.mp3
 03/22/2023  01:46 PM         3,836,446 05 - Uproot.mp3
-</pre>
+```
