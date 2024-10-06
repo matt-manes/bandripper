@@ -334,7 +334,15 @@ class BandRipper:
         assert isinstance(grid, Tag)
         parsed_url = urlparse(self.band_url)
         base_url = f"https://{parsed_url.netloc}"
-        return [base_url + album.a.get("href") for album in grid.find_all("li")]
+        urls: list[str] = [
+            base_url + album.a.get("href") for album in grid.find_all("li")
+        ]
+        # Sometimes label pages link to a band's bandcamp instead of hosting the album
+        # so we gotta fix double urls
+        return [
+            url if url.count("http") == 1 else url[url.find("http", 1) :]
+            for url in urls
+        ]
 
     def get_discography_page(self) -> str:
         url = f"{color.bb}{self.band_url}[/]"
