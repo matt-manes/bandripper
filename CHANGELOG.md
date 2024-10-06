@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.3.0 (2024-10-06)
+
+#### New Features
+
+* save discography urls and add cli arg to check them for new releases
+
+#### Fixes
+
+* fix double url bug on label discog pages
+
+#### Refactorings
+
+* give console colors names
+
 ## v0.2.1 (2024-08-19)
 
 #### Refactorings
