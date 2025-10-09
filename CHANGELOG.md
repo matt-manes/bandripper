@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.3.1 (2025-10-09)
+
+#### Fixes
+
+* fix bandcamp returning 403 on all requests
+
+#### Others
+
+* add missing type annotations
+* add type ignore comment to bs4 references
+
 ## v0.3.0 (2024-10-06)
 
 #### New Features
