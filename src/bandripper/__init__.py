@@ -7,7 +7,7 @@ from .bandripper import (
     page_is_discography,
 )
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 __all__ = [
     "BandRipper",
     "AlbumRipper",

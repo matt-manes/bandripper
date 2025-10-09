@@ -1,8 +1,8 @@
 [project]
 name = "bandripper"
 description = "Rip mp3s from bandcamp."
-version = "0.3.0"
-dependencies = ["noiftimer", "printbuddies", "argshell", "beautifulsoup4", "gruel", "pathier", "quickpool", "rich", "typing_extensions"]
+version = "0.3.1"
+dependencies = ["noiftimer", "printbuddies", "argshell", "beautifulsoup4", "gruel", "pathier", "quickpool", "rich", "typing_extensions", "requests", "urllib3"]
 readme = "README.md"
 keywords = ["bandcamp", "download", "downloader", "music", "audio"]
 classifiers = ["Programming Language :: Python :: 3", "License :: OSI Approved :: MIT License", "Operating System :: OS Independent"]
