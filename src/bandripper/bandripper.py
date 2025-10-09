@@ -1,23 +1,28 @@
 import json
 import re
 import string
+from collections.abc import Callable
 from dataclasses import dataclass
 from urllib.parse import urlparse
 
 import argshell
 import quickpool
 from bs4 import BeautifulSoup, Tag  # type: ignore
-from gruel import request
 from noiftimer import Timer
 from pathier import Pathier
 from printbuddies import ColorMap
 from rich.console import Console
-from typing_extensions import Any, Optional  # type: ignore
+from typing_extensions import Any
+
+import bandripper.request
 
 console = Console(style="pink1")
 color = ColorMap()
-root = Pathier(__file__).parent
+root: Pathier = Pathier(__file__).parent
 discog_urls = Pathier("discography_urls.txt")
+
+# lazy way of treating the session object like a singleton, don't @ me
+request: Callable[..., Any] = bandripper.request.get_session().get
 
 
 @dataclass
@@ -78,7 +83,7 @@ class Album:
     artist: str
     title: str
     tracks: list[Track]
-    art_url: Optional[str] = None  # type:ignore
+    art_url: str | None = None
 
     def __repr__(self):
         return f"{self.title} by {self.artist}"
