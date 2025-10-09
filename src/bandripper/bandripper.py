@@ -2,15 +2,18 @@ import json
 import re
 import string
 from collections.abc import Callable
-from dataclasses import dataclass
-from urllib.parse import urlparse
+from dataclasses import dataclass, field
+from urllib.parse import ParseResult, urlparse
 
 import argshell
 import quickpool
 from bs4 import BeautifulSoup, Tag  # type: ignore
+from gruel import Response
 from noiftimer import Timer
 from pathier import Pathier
 from printbuddies import ColorMap
+from printbuddies.colormap import Tag as ColorTag
+from requests import HTTPError
 from rich.console import Console
 from typing_extensions import Any
 
@@ -27,11 +30,11 @@ request: Callable[..., Any] = bandripper.request.get_session().get
 
 @dataclass
 class Colors:
-    title = color.a1
-    status = color.br
-    highlight = color.dp1
-    number = color.bg
-    url = color.t2
+    title: ColorTag = field(default_factory=lambda: color.a1)
+    status: ColorTag = field(default_factory=lambda: color.br)
+    highlight: ColorTag = field(default_factory=lambda: color.dp1)
+    number: ColorTag = field(default_factory=lambda: color.bg)
+    url: ColorTag = field(default_factory=lambda: color.t2)
 
 
 colors = Colors()
@@ -54,28 +57,27 @@ class Track:
         return f"{self.numbered_title}.mp3"
 
     @property
-    def numbered_title(self):
+    def numbered_title(self) -> str:
         num = str(self.number)
         if len(num) == 1:
-            num = "0" + num
+            num: str = "0" + num
         return f"{num} - {self.title}"
 
     def download(self) -> bytes | None:
         """Download this track and return the data."""
-        response = None
+        response: Response = Response()
+        fail_message = f"Download for {colors.url}{self.title}[/] failed"
         try:
             response = request(self.url)
             response.raise_for_status()
             return response.content
+        except HTTPError as e:
+            console.print(
+                f"{fail_message} with status code {colors.status}{response.status_code}."
+            )
         except Exception as e:
-            fail_message = f"Download for {colors.url}{self.title}[/] failed"
-            if response:
-                console.print(
-                    f"{fail_message} with status code {colors.status}{response.status_code}."
-                )
-            else:
-                console.print(f"{fail_message}:")
-                console.print(e)
+            console.print(f"{fail_message}:")
+            console.print(e)
 
 
 @dataclass
@@ -85,7 +87,7 @@ class Album:
     tracks: list[Track]
     art_url: str | None = None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.title} by {self.artist}"
 
     @property
@@ -103,24 +105,24 @@ class Album:
         if not self.art_url:
             console.print(f"No `art_url` provided for {self.rich_str}.")
             return None
-        response = None
+        fail_message: str = f"Downloading album art for {self.rich_str} failed"
+        response: Response = Response()
         try:
             response = request(self.art_url)
             response.raise_for_status()
             return response.content
+        except HTTPError as e:
+            console.print(
+                f"{fail_message} with status code {colors.status}{response.status_code}."
+            )
+            raise e
         except Exception as e:
-            fail_message = f"Downloading album art for {self.rich_str} failed"
-            if response:
-                console.print(
-                    f"{fail_message} with status code {colors.status}{response.status_code}."
-                )
-            else:
-                console.print(f"{fail_message}:")
-                console.print(e)
+            console.print(f"{fail_message}:")
+            console.print(e)
 
 
 class AlbumParser:
-    def __init__(self, html: str):
+    def __init__(self, html: str) -> None:
         """Parse album details from the html of a bandcamp album page."""
         self._soup = BeautifulSoup(html, "html.parser")
 
@@ -134,11 +136,11 @@ class AlbumParser:
 
     def get_album_art_url(self) -> str | None:
         """Returns the url for album art if there is one."""
-        image_meta = self.soup.find(  # type:ignore
+        image_meta: Tag | None = self.soup.find(  # type:ignore
             "meta", attrs={"property": "og:image"}
         )
         if isinstance(image_meta, Tag):
-            image_meta_content = image_meta.get("content")  # type:ignore
+            image_meta_content: Any = image_meta.get("content")  # type:ignore
             if isinstance(image_meta_content, str):
                 return image_meta_content
         return None
@@ -153,9 +155,9 @@ class AlbumParser:
     def parse(self) -> Album | None:
         """Parse album page and return `Album` object."""
         if data := self.get_album_data():
-            artist = self.clean_string(data["artist"])
-            title = self.clean_string(data["current"]["title"])
-            tracks = [
+            artist: str = self.clean_string(data["artist"])
+            title: str = self.clean_string(data["current"]["title"])
+            tracks: list[Track] = [
                 Track(
                     self.clean_string(track["title"]),
                     track["track_num"],
@@ -164,7 +166,7 @@ class AlbumParser:
                 for track in data["trackinfo"]
                 if track.get("file")
             ]
-            art_url = self.get_album_art_url()
+            art_url: str | None = self.get_album_art_url()
             return Album(artist, title, tracks, art_url)
         return None
 
@@ -172,14 +174,14 @@ class AlbumParser:
 class AlbumRipper:
     def __init__(
         self, album_url: str, no_track_number: bool = False, overwrite: bool = False
-    ):
+    ) -> None:
         """
         :param no_track_number: If True, don't add the track
         number to the front of the track title."""
-        self.album_url = album_url
-        self.no_track_number = no_track_number
-        self.overwrite = overwrite
-        self._save_path = None
+        self.album_url: str = album_url
+        self.no_track_number: bool = no_track_number
+        self.overwrite: bool = overwrite
+        self._save_path: Pathier | None = None
         self._failed_rips: list[Track] = []
 
     @property
@@ -198,23 +200,25 @@ class AlbumRipper:
         def __init__(self, album: Album | None = None) -> None:
             end_message = "Pass an `Album` instance to `self.make_save_path()` before doing what you just did."
             if not album:
-                message = f"No save path set for this album."
+                message: str = f"No save path set for this album."
             else:
-                message = f"No save path set for {album.title} by {album.artist}."
+                message: str = f"No save path set for {album.title} by {album.artist}."
             super().__init__(" ".join([message, end_message]))
 
     def get_album_page(self) -> str:
         """Make a request to `self.album_url` and return the text content."""
-        response = None
+        response: Response = Response()
         try:
             response = request(self.album_url)
             response.raise_for_status()
+        except HTTPError as e:
+            console.print(f"Failed to retrieve page at {colors.url}{self.album_url}.")
+            console.print(
+                f"Failed with status code {colors.status}{response.status_code}."
+            )
+            raise e
         except Exception as e:
             console.print(f"Failed to retrieve page at {colors.url}{self.album_url}.")
-            if response:
-                console.print(
-                    f"Failed with status code {colors.status}{response.status_code}."
-                )
             raise e
         return response.text
 
@@ -265,10 +269,10 @@ class AlbumRipper:
 
     def rip(self) -> Album:
         """Download and save the album tracks and album art."""
-        album = AlbumParser(self.get_album_page()).parse()
+        album: Album | None = AlbumParser(self.get_album_page()).parse()
         if not album:
             raise RuntimeError(f"No album data was found on {self.album_url}.")
-        num_tracks = len(album.tracks)
+        num_tracks: int = len(album.tracks)
         if num_tracks == 0:
             console.print(f"No public tracks available for {album.rich_str}.")
             return album
@@ -276,11 +280,11 @@ class AlbumRipper:
         assert self.save_path
         self.save_album_art(album)
 
-        tracks_to_download = self.get_track_download_list(album)
+        tracks_to_download: list[Track] = self.get_track_download_list(album)
         if not tracks_to_download:
             return album
 
-        num_tracks_to_download = len(tracks_to_download)
+        num_tracks_to_download: int = len(tracks_to_download)
         quickpool.ThreadPool(
             [self.save_track] * num_tracks_to_download,
             [(track,) for track in tracks_to_download],
@@ -295,12 +299,12 @@ class AlbumRipper:
                 console.print(f"  {colors.title}{track.title}")
         return album
 
-    def save_album_art(self, album: Album):
+    def save_album_art(self, album: Album) -> None:
         """Download and save album art if it has any."""
         if not self.save_path:
             raise self.NoSavePathError(album)
         if album.art_url:
-            art = album.download_art()
+            art: bytes | None = album.download_art()
             if art:
                 (self.save_path / album.art_file_name).write_bytes(art)
         else:
@@ -311,10 +315,10 @@ class AlbumRipper:
         Returns whether the download was successful or not."""
         if not self.save_path:
             raise self.NoSavePathError()
-        file_path = self.save_path / (
+        file_path: Pathier = self.save_path / (
             track.file_name if self.no_track_number else track.numbered_file_name
         )
-        content = track.download()
+        content: bytes | None = track.download()
         if content:
             file_path.write_bytes(content)
             return True
@@ -325,7 +329,7 @@ class AlbumRipper:
         """Return if a track already exists in `self.save_path`."""
         if not self.save_path:
             raise self.NoSavePathError()
-        path = self.save_path / (
+        path: Pathier = self.save_path / (
             track.file_name if self.no_track_number else track.numbered_file_name
         )
         return path.exists()
@@ -338,22 +342,22 @@ class BandRipper:
         no_track_number: bool = False,
         overwrite: bool = False,
         discography_page_html: str | None = None,
-    ):
-        self.band_url = band_url
-        self.no_track_number = no_track_number
-        self.overwrite = overwrite
+    ) -> None:
+        self.band_url: str = band_url
+        self.no_track_number: bool = no_track_number
+        self.overwrite: bool = overwrite
         self.album_rippers: list[AlbumRipper] = []
-        self.discography_page_html = discography_page_html
+        self.discography_page_html: str | None = discography_page_html
 
     def get_album_urls(self) -> list[str]:
         """Get album urls from the main bandcamp url."""
         if not self.discography_page_html:
             self.discography_page_html = self.get_discography_page()
         soup = BeautifulSoup(self.discography_page_html, "html.parser")
-        grid = soup.find("ol", attrs={"id": "music-grid"})  # type:ignore
+        grid: Tag | None = soup.find("ol", attrs={"id": "music-grid"})  # type:ignore
         assert isinstance(grid, Tag)
-        parsed_url = urlparse(self.band_url)
-        base_url = f"https://{parsed_url.netloc}"
+        parsed_url: ParseResult = urlparse(self.band_url)
+        base_url: str = f"https://{parsed_url.netloc}"
         urls: list[str] = [  # type:ignore
             base_url + album.a.get("href")  # type:ignore
             for album in grid.find_all("li")  # type:ignore
@@ -366,23 +370,25 @@ class BandRipper:
         ]
 
     def get_discography_page(self) -> str:
-        url = f"{colors.url}{self.band_url}[/]"
+        url: str = f"{colors.url}{self.band_url}[/]"
         console.print(f"Fetching discography from {url}...")
-        response = None
+        response: Response = Response()
         try:
             response = request(self.band_url)
             response.raise_for_status()
+        except HTTPError as e:
+            console.print(f"Failed to access {url}.")
+            console.print(f"Status code: {colors.status}{response.status_code}")
+            raise e
         except Exception as e:
             console.print(f"Failed to access {url}.")
-            if response:
-                console.print(f"Status code: {colors.status}{response.status_code}")
             raise e
         return response.text
 
     def save_discog_url(self) -> None:
         """Add discog url to txt file if it isn't in there."""
         discog_urls.touch()
-        urls = discog_urls.split("utf-8")
+        urls: list[str] = discog_urls.split("utf-8")
         if self.band_url not in urls:
             urls.append(self.band_url)
         discog_urls.join(sorted(urls))
@@ -406,7 +412,7 @@ class BandRipper:
         albums: list[Album] = []
         for ripper in self.album_rippers:
             try:
-                album = ripper.rip()
+                album: Album = ripper.rip()
                 albums.append(album)
             except Exception as e:
                 fails.append((ripper, e))
@@ -426,7 +432,7 @@ class BandRipper:
 def page_is_discography(url: str) -> str | None:
     """Returns the page text if `url` is a discography page.
     `None` if it isn't."""
-    response = request(url)
+    response: Response = request(url)
     response.raise_for_status()
     if '<ol id="music-grid"' in response.text:
         return response.text
