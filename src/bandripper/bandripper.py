@@ -6,13 +6,13 @@ from urllib.parse import urlparse
 
 import argshell
 import quickpool
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup, Tag  # type: ignore
 from gruel import request
 from noiftimer import Timer
 from pathier import Pathier
 from printbuddies import ColorMap
 from rich.console import Console
-from typing_extensions import Any, Optional
+from typing_extensions import Any, Optional  # type: ignore
 
 console = Console(style="pink1")
 color = ColorMap()
@@ -78,7 +78,7 @@ class Album:
     artist: str
     title: str
     tracks: list[Track]
-    art_url: Optional[str] = None
+    art_url: Optional[str] = None  # type:ignore
 
     def __repr__(self):
         return f"{self.title} by {self.artist}"
@@ -129,18 +129,20 @@ class AlbumParser:
 
     def get_album_art_url(self) -> str | None:
         """Returns the url for album art if there is one."""
-        image_meta = self.soup.find("meta", attrs={"property": "og:image"})
+        image_meta = self.soup.find(  # type:ignore
+            "meta", attrs={"property": "og:image"}
+        )
         if isinstance(image_meta, Tag):
-            image_meta_content = image_meta.get("content")
+            image_meta_content = image_meta.get("content")  # type:ignore
             if isinstance(image_meta_content, str):
                 return image_meta_content
         return None
 
     def get_album_data(self) -> dict[str, Any] | None:
         """Returns a dictionary containing album data if it's present."""
-        for script in self.soup.find_all("script"):
-            if script.get("data-cart"):
-                return json.loads(script.attrs["data-tralbum"])
+        for script in self.soup.find_all("script"):  # type:ignore
+            if script.get("data-cart"):  # type:ignore
+                return json.loads(script.attrs["data-tralbum"])  # type:ignore
         return None
 
     def parse(self) -> Album | None:
@@ -343,12 +345,13 @@ class BandRipper:
         if not self.discography_page_html:
             self.discography_page_html = self.get_discography_page()
         soup = BeautifulSoup(self.discography_page_html, "html.parser")
-        grid = soup.find("ol", attrs={"id": "music-grid"})
+        grid = soup.find("ol", attrs={"id": "music-grid"})  # type:ignore
         assert isinstance(grid, Tag)
         parsed_url = urlparse(self.band_url)
         base_url = f"https://{parsed_url.netloc}"
-        urls: list[str] = [
-            base_url + album.a.get("href") for album in grid.find_all("li")
+        urls: list[str] = [  # type:ignore
+            base_url + album.a.get("href")  # type:ignore
+            for album in grid.find_all("li")  # type:ignore
         ]
         # Sometimes label pages link to a band's bandcamp instead of hosting the album
         # so we gotta fix double urls
